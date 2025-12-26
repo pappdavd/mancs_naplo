@@ -4,8 +4,7 @@ import { HiMenu, HiX, HiSun, HiMoon, HiMusicNote, HiVolumeOff } from 'react-icon
 
 // Context és komponensek importálása
 import { useTheme } from '../context/ThemeContext';
-// A Button importot itt hagyhatjuk, ha máshol kell, de a Login gombhoz már nem használjuk a komponenst, hanem egyedit írtunk
-import Button from '../shared/components/Button'; 
+// A Button importot eltávolítottuk, mert már nem használjuk
 import MancsLogo from '../shared/components/MancsLogo';
 
 // Zene importálása
@@ -64,7 +63,6 @@ const Navbar = () => {
 
   const navLinks = [
     { name: 'Kezdőlap', path: '/' },
-    // A MancsShop törölve
     { name: 'Funkciók', path: '/#funkciok' },
     { name: 'Árak', path: '/#arak' },
     { name: 'Kapcsolat', path: '/#kapcsolat' },
