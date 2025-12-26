@@ -53,3 +53,10 @@ html {
 .animate-fade-in-up {
   animation: fadeInUp 0.8s ease-out forwards;
 }
+
+/* Leaflet térkép fix */
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+}

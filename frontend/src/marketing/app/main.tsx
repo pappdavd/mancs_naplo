@@ -20,6 +20,7 @@ import { DashboardPage } from '../../app/features/dashboard/DashboardPage';
 import { ProfilePage } from '../../app/features/dashboard/profile/ProfilePage';
 import { ShopPage } from '../../app/features/dashboard/shop/ShopPage';
 import { SchoolPage } from '../../app/features/dashboard/school/SchoolPage';
+import { MapPage } from '../../app/features/dashboard/map/MapPage';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
@@ -46,6 +47,7 @@ createRoot(document.getElementById('root')!).render(
               {/* <Route path="map" element={<MapPage />} /> */}
 <Route path="shop" element={<ShopPage />} />     
 <Route path="school" element={<SchoolPage />} />         
+<Route path="map" element={<MapPage />} />
             </Route>
 
           </Routes>
