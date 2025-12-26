@@ -19,6 +19,7 @@ import { DashboardLayout } from '../../app/layouts/DashboardLayout';
 import { DashboardPage } from '../../app/features/dashboard/DashboardPage'; 
 import { ProfilePage } from '../../app/features/dashboard/profile/ProfilePage';
 import { ShopPage } from '../../app/features/dashboard/shop/ShopPage';
+import { SchoolPage } from '../../app/features/dashboard/school/SchoolPage';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
@@ -43,7 +44,8 @@ createRoot(document.getElementById('root')!).render(
               
               {/* Később ide jönnek a további aloldalak (Térkép, Shop, Suli) */}
               {/* <Route path="map" element={<MapPage />} /> */}
-<Route path="shop" element={<ShopPage />} />              
+<Route path="shop" element={<ShopPage />} />     
+<Route path="school" element={<SchoolPage />} />         
             </Route>
 
           </Routes>
