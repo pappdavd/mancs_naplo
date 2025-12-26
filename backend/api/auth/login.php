@@ -25,8 +25,7 @@ try {
             $row = $stmt->fetch(PDO::FETCH_ASSOC);
             
             // JELSZÓ ELLENŐRZÉS
-            if (password_verify($data->password, $row['password'])) {
-                
+if (password_verify($data->password, $row['password'])) {                
                 $payload = array(
                     "iss" => JWT_ISSUER,
                     "iat" => time(),

@@ -1,7 +1,7 @@
 import { useState, useRef } from 'react';
 import axios from 'axios';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, User, ArrowLeft, Sun, Moon, CheckCircle } from 'lucide-react';
+import { Mail, Lock, User, ArrowLeft, Sun, Moon, CheckCircle, AlertCircle } from 'lucide-react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -18,11 +18,12 @@ export const RegisterPage = () => {
   
   const containerRef = useRef(null);
 
+  // 1. A state-et bővítettük confirmPassword-dal a biztonság érdekében
   const [formData, setFormData] = useState({
     gazdi_nev: '',
     email: '',
-    password: ''
-    // KIVETTÜK: kutya_nev (majd a profilban hozzáadja)
+    password: '',
+    confirmPassword: ''
   });
   
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
@@ -33,6 +34,7 @@ export const RegisterPage = () => {
     author: "W.R. Purche"
   };
 
+  // --- ANIMÁCIÓK (A te eredeti kódodból) ---
   useGSAP(() => {
     gsap.from(".left-panel-content", {
       x: -50,
@@ -62,18 +64,37 @@ export const RegisterPage = () => {
     setIsLoading(true);
     setMessage(null);
 
+    // 2. Kliens oldali validáció (Jelszavak egyezése)
+    if (formData.password !== formData.confirmPassword) {
+        setMessage({ text: 'A két jelszó nem egyezik meg!', type: 'error' });
+        setIsLoading(false);
+        return;
+    }
+
+    if (formData.password.length < 6) {
+        setMessage({ text: 'A jelszó túl rövid (min. 6 karakter).', type: 'error' });
+        setIsLoading(false);
+        return;
+    }
+
     try {
-      const response = await axios.post('http://localhost/pawpatrol/api/register.php', formData);
+      // 3. A helyes útvonal: api/auth/register.php
+      const response = await axios.post('http://localhost/pawpatrol/api/auth/register.php', {
+         gazdi_nev: formData.gazdi_nev,
+         email: formData.email,
+         password: formData.password
+      });
       
       if (response.data.success) {
         setMessage({ text: 'Sikeres regisztráció! Máris átirányítunk...', type: 'success' });
+        
+        // Kis késleltetés, hogy a user elolvashassa az üzenetet
         setTimeout(() => {
             navigate('/login');
         }, 2000);
-      } else {
-        setMessage({ text: response.data.message || 'Hiba történt.', type: 'error' });
-      }
+      } 
     } catch (error: any) {
+      console.error(error);
       const errorMsg = error.response?.data?.message || 'Nem sikerült csatlakozni a szerverhez.';
       setMessage({ text: errorMsg, type: 'error' });
     } finally {
@@ -84,7 +105,7 @@ export const RegisterPage = () => {
   return (
     <div ref={containerRef} className="min-h-screen w-full flex bg-white dark:bg-gray-900 transition-colors duration-500">
       
-      {/* --- BAL OLDAL --- */}
+      {/* --- BAL OLDAL (Marketing & Háttér) --- */}
       <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-gray-900">
         <div 
             className="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000"
@@ -113,9 +134,10 @@ export const RegisterPage = () => {
         </div>
       </div>
 
-      {/* --- JOBB OLDAL --- */}
+      {/* --- JOBB OLDAL (Form) --- */}
       <div className="w-full lg:w-1/2 flex flex-col justify-center items-center p-8 relative">
         
+        {/* Theme Toggler */}
         <div className="absolute top-6 right-6 flex items-center gap-4 register-item">
             <button 
                 onClick={toggleTheme}
@@ -125,6 +147,7 @@ export const RegisterPage = () => {
             </button>
         </div>
 
+        {/* Mobil Back Button */}
         <div className="lg:hidden absolute top-6 left-6 register-item">
             <Link to="/" className="text-gray-500 dark:text-gray-400 hover:text-orange-600 flex items-center gap-2">
                 <ArrowLeft size={20} />
@@ -160,6 +183,7 @@ export const RegisterPage = () => {
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all"
                     placeholder="A te teljes neved"
+                    value={formData.gazdi_nev}
                     onChange={handleChange}
                 />
             </div>
@@ -174,7 +198,8 @@ export const RegisterPage = () => {
                   type="email"
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all"
-                  placeholder="Email címed"
+                  placeholder="pelda@email.com"
+                  value={formData.email}
                   onChange={handleChange}
                 />
             </div>
@@ -190,17 +215,35 @@ export const RegisterPage = () => {
                   required
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all"
                   placeholder="Jelszó (min. 6 karakter)"
+                  value={formData.password}
                   onChange={handleChange}
                 />
             </div>
 
+            {/* Jelszó Megerősítése (ÚJ MEZŐ a designhoz illesztve) */}
+            <div className="relative group">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400 dark:text-gray-500 group-focus-within:text-orange-600 transition-colors">
+                  <Lock size={20} />
+                </div>
+                <input
+                  name="confirmPassword"
+                  type="password"
+                  required
+                  className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all"
+                  placeholder="Jelszó megerősítése"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                />
+            </div>
+
+            {/* Üzenet / Hiba visszajelzés */}
             {message && (
-                <div className={`p-4 rounded-xl flex items-center gap-3 text-sm ${
+                <div className={`p-4 rounded-xl flex items-center gap-3 text-sm animate-pulse ${
                     message.type === 'error' 
                     ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border border-red-100 dark:border-red-800' 
                     : 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-100 dark:border-green-800'
                 }`}>
-                    {message.type === 'success' ? <CheckCircle size={20} /> : <span>⚠️</span>}
+                    {message.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
                     {message.text}
                 </div>
             )}
