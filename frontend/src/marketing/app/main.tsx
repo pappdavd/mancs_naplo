@@ -14,8 +14,10 @@ import MarketingApp from './MarketingApp';
 import { LoginPage } from '../../app/auth/LoginPage';
 import { RegisterPage } from '../../app/auth/RegisterPage';
 import { DashboardLayout } from '../../app/layouts/DashboardLayout';
-import { DashboardPage } from '../../app/features/dashboard/DashboardPage';
 
+// Fontos: Itt már a helyes, mappába rendezett útvonalat használjuk
+import { DashboardPage } from '../../app/features/dashboard/DashboardPage'; 
+import { ProfilePage } from '../../app/features/dashboard/profile/ProfilePage';
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
@@ -23,7 +25,7 @@ createRoot(document.getElementById('root')!).render(
       <ThemeProvider>
         <BrowserRouter>
           <Routes>
-            {/* --- PUBLIKUS OLDALAK --- */}
+            {/* --- PUBLIKUS OLDALAK (Marketing & Auth) --- */}
             <Route path="/" element={<MarketingApp />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
@@ -31,12 +33,17 @@ createRoot(document.getElementById('root')!).render(
             {/* --- VÉDETT (BELSŐ) DASHBOARD --- */}
             {/* A DashboardLayout adja a keretet (Oldalsáv / Alsó menü) */}
             <Route path="/dashboard" element={<DashboardLayout />}>
-              {/* Az "index" jelentése: ez jelenik meg alapból a /dashboard címen */}
+              
+              {/* Főoldal (Tamagotchi / Feed) - ez töltődik be alapból a /dashboard címen */}
               <Route index element={<DashboardPage />} />
               
-              {/* Később ide jönnek a további aloldalak, pl.: */}
+              {/* Profil oldal - /dashboard/profile */}
+              <Route path="profile" element={<ProfilePage />} />
+              
+              {/* Később ide jönnek a további aloldalak (Térkép, Shop, Suli) */}
               {/* <Route path="map" element={<MapPage />} /> */}
               {/* <Route path="shop" element={<ShopPage />} /> */}
+              
             </Route>
 
           </Routes>
