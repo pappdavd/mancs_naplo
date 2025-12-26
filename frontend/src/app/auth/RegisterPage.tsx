@@ -226,7 +226,7 @@ export const RegisterPage = () => {
         </div>
         
          <p className="absolute bottom-6 text-center text-gray-400 text-xs register-item">
-            © 2024 MancsNapló.
+            © 2025 MancsNapló.
         </p>
       </div>
     </div>
