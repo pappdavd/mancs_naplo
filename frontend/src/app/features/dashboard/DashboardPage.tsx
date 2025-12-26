@@ -1,51 +1,108 @@
-import { useState } from 'react'; // React import törölve, csak a hookok kellenek
-import { Footprints, Utensils, Zap, Heart, Bell, CheckCircle, ShoppingBag } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Footprints, Utensils, Zap, Heart, Bell, CheckCircle, ShoppingBag, Trophy } from 'lucide-react';
+import axios from 'axios';
+import { useAuth } from '../../context/AuthContext'; // <--- Context
 import { logActivity } from '../../services/logger';
 import Button from '../../../marketing/shared/components/Button';
-
-const MOCK_USER = {
-  id: 1,
-  dogName: "Bodri",
-  breed: "Magyar Vizsla",
-  level: 5,
-  stats: {
-    happiness: 80,
-    energy: 40,
-    health: 95
-  }
-};
+import { Link } from 'react-router-dom';
 
 export const DashboardPage = () => {
-  const [stats, setStats] = useState(MOCK_USER.stats);
+  const { user } = useAuth(); // <--- Valódi user
+  const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
+  
+  // Backendből jövő adatok (alapértékek)
+  const [dogData, setDogData] = useState({
+    name: 'Betöltés...',
+    breed: 'Keverék',
+    level: 1,
+    xp: 0,
+    hunger: 100,
+    energy: 100,
+    happiness: 100
+  });
 
-  const handleAction = async (action: 'walk' | 'feed') => {
+  // 1. Adatok betöltése backendről
+  useEffect(() => {
+    if (user && user.id) {
+        fetchStatus();
+    }
+  }, [user]);
+
+  const fetchStatus = async () => {
+    try {
+      // Itt hívjuk meg a backendet a user ID-val
+      const response = await axios.get(`http://localhost/pawpatrol/api/tamagotchi/get_status.php?user_id=${user?.id}`);
+      if (response.data.success) {
+        // A backend válaszát illesztjük a state-be
+        const data = response.data.data;
+        setDogData({
+            name: user?.gazdi_nev ? `${user.gazdi_nev} Kutyusa` : 'Kutyus', // Ha van kutyanev, azt kéne, de most usernevbol generalunk
+            breed: 'Virtuális',
+            level: data.level,
+            xp: data.xp,
+            hunger: data.hunger,
+            energy: data.energy,
+            happiness: data.happiness
+        });
+      }
+    } catch (error) {
+      console.error("Hiba:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 2. Interakció kezelése (Etetés / Séta / Játék)
+  const handleAction = async (action: 'walk' | 'feed' | 'play') => {
+    if (!user) return;
     setIsAnimating(true);
     
-    // Logolás
-    logActivity(
-        MOCK_USER.id, 
-        action, 
-        action === 'walk' ? 'Séta indítva a Dashboardról' : 'Kutya megetetve'
-    );
+    // Lokális frissítés (hogy gyors legyen a UI)
+    let newStatus = { ...dogData };
+    let logMessage = '';
 
-    // Állapot frissítés
     if (action === 'walk') {
-      setStats(prev => ({ 
-          ...prev, 
-          happiness: Math.min(100, prev.happiness + 15), 
-          energy: Math.max(0, prev.energy - 20) 
-      }));
-    } else {
-      setStats(prev => ({ 
-          ...prev, 
-          energy: Math.min(100, prev.energy + 30), 
-          health: Math.min(100, prev.health + 5) 
-      }));
+        newStatus.happiness = Math.min(100, newStatus.happiness + 15);
+        newStatus.energy = Math.max(0, newStatus.energy - 20);
+        newStatus.xp += 20;
+        logMessage = 'Séta indítva (+20 XP, +15 Boldogság)';
+    } else if (action === 'feed') {
+        newStatus.hunger = Math.min(100, newStatus.hunger + 20); // Backend "Hunger" mezője a "Jóllakottságot" jelenti itt
+        newStatus.xp += 5;
+        logMessage = 'Kutya megetetve (+5 XP, +20 Jóllakottság)';
     }
 
+    // Szintlépés ellenőrzés
+    if (newStatus.xp >= 100) {
+        newStatus.level += 1;
+        newStatus.xp -= 100;
+        alert("Szintlépés! Gratulálok! 🎉");
+    }
+
+    setDogData(newStatus);
     setTimeout(() => setIsAnimating(false), 1000);
+
+    // Mentés Backendbe
+    try {
+       await axios.post('http://localhost/pawpatrol/api/tamagotchi/update_status.php', {
+          user_id: user.id,
+          hunger: newStatus.hunger,
+          energy: newStatus.energy,
+          happiness: newStatus.happiness,
+          xp: newStatus.xp,
+          level: newStatus.level
+       });
+       
+       // Logolás
+       await logActivity(user.id, action, logMessage);
+
+    } catch (error) {
+       console.error("Mentési hiba:", error);
+    }
   };
+
+  if (loading) return <div className="p-10 text-center text-gray-500">Kutyus ébresztése... 🐶</div>;
 
   return (
     <div className="space-y-6 pb-20 md:pb-0">
@@ -53,7 +110,7 @@ export const DashboardPage = () => {
       {/* FEJLÉC */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Jó reggelt, Gazdi! ☀️</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Jó reggelt, {user?.gazdi_nev}! ☀️</h1>
           <p className="text-gray-500">Itt a napi összefoglalód.</p>
         </div>
         <button className="p-2 bg-white rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors">
@@ -69,8 +126,8 @@ export const DashboardPage = () => {
         <div className="flex flex-col sm:flex-row items-center gap-6 relative z-10">
            <div className={`relative w-32 h-32 rounded-full border-4 border-orange-100 shadow-inner overflow-hidden transition-transform duration-500 ${isAnimating ? 'scale-110 rotate-3' : ''}`}>
               <img 
-                src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=300&h=300" 
-                alt="Bodri" 
+                src={user?.avatar_url || "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&q=80&w=300&h=300"} 
+                alt="Avatar" 
                 className="w-full h-full object-cover"
               />
            </div>
@@ -78,8 +135,10 @@ export const DashboardPage = () => {
            <div className="flex-1 w-full space-y-4">
               <div className="flex justify-between items-end">
                  <div>
-                    <h2 className="text-xl font-bold text-gray-900">{MOCK_USER.dogName}</h2>
-                    <p className="text-sm text-gray-500">{MOCK_USER.breed} • Szint: {MOCK_USER.level}</p>
+                    <h2 className="text-xl font-bold text-gray-900">{dogData.name}</h2>
+                    <p className="text-sm text-gray-500 flex items-center gap-2">
+                        {dogData.breed} • <Trophy size={14} className="text-yellow-500"/> Szint: {dogData.level}
+                    </p>
                  </div>
                  <div className="text-right">
                     <span className="inline-block px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full">
@@ -89,8 +148,9 @@ export const DashboardPage = () => {
               </div>
 
               <div className="space-y-3">
-                 <StatBar label="Boldogság" value={stats.happiness} color="bg-orange-500" icon={Heart} />
-                 <StatBar label="Energia" value={stats.energy} color="bg-blue-500" icon={Zap} />
+                 <StatBar label="Boldogság" value={dogData.happiness} color="bg-orange-500" icon={Heart} />
+                 <StatBar label="Energia" value={dogData.energy} color="bg-blue-500" icon={Zap} />
+                 <StatBar label="Jóllakottság" value={dogData.hunger} color="bg-green-500" icon={Utensils} />
               </div>
            </div>
         </div>
@@ -119,29 +179,31 @@ export const DashboardPage = () => {
                 Mai Teendők
             </h3>
             <div className="space-y-3">
-               <TaskItem label="Reggeli séta (30p)" isDone={true} />
-               <TaskItem label="Trükk gyakorlás: Ül" isDone={false} />
-               <TaskItem label="Esti vacsora" isDone={false} />
+               <TaskItem label="Reggeli séta (30p)" isDone={dogData.energy < 80} />
+               <TaskItem label="Etetés" isDone={dogData.hunger > 90} />
+               <TaskItem label="Trükk gyakorlás" isDone={false} />
             </div>
          </div>
 
-         <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-sm text-white relative overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02]">
-            <div className="relative z-10">
-               <h3 className="font-bold text-lg mb-1">Hétvégi Szuper Ajánlat!</h3>
-               <p className="text-indigo-100 text-sm mb-4">A vizslák imádják ezt az új labdát.</p>
-               <button className="bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-md">
-                  Megnézem a Shopban
-               </button>
-            </div>
-            <ShoppingBag className="absolute -bottom-4 -right-4 w-32 h-32 text-white opacity-10 rotate-12 group-hover:rotate-6 transition-transform duration-500" />
-         </div>
+         {/* Shop Promo Widget */}
+         <Link to="/dashboard/shop">
+             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-sm text-white relative overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02] h-full">
+                <div className="relative z-10">
+                   <h3 className="font-bold text-lg mb-1">Hétvégi Szuper Ajánlat!</h3>
+                   <p className="text-indigo-100 text-sm mb-4">A vizslák imádják ezt az új labdát.</p>
+                   <button className="bg-white text-indigo-600 px-4 py-2 rounded-lg text-sm font-bold hover:bg-indigo-50 transition-colors shadow-md">
+                      Megnézem a Shopban
+                   </button>
+                </div>
+                <ShoppingBag className="absolute -bottom-4 -right-4 w-32 h-32 text-white opacity-10 rotate-12 group-hover:rotate-6 transition-transform duration-500" />
+             </div>
+         </Link>
       </div>
     </div>
   );
 };
 
-// JAVÍTVA: A 'label' ki lett véve a destructuringból, mert nem használtuk,
-// VAGY használjuk a title attribútumban (én most betettem a title-be, így valid)
+// Segédkomponensek (StatBar, TaskItem) - ezek maradhatnak változatlanok
 const StatBar = ({ label, value, color, icon: Icon }: any) => (
    <div className="flex items-center gap-3" title={label}>
       <Icon size={18} className="text-gray-400" />

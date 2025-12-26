@@ -4,7 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Mail, Lock, ArrowLeft, Sun, Moon } from 'lucide-react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-
+import { useAuth } from '../context/AuthContext';
 import Button from '../../marketing/shared/components/Button';
 import MancsLogo from '../../marketing/shared/components/MancsLogo';
 import { useTheme } from '../../marketing/context/ThemeContext';
@@ -13,13 +13,15 @@ import dayBg from '../../marketing/assets/wallpaper_day.png';
 import nightBg from '../../marketing/assets/wallpaper_night.png';
 
 export const LoginPage = () => {
+  const { login } = useAuth();
   const navigate = useNavigate();
   const { theme, toggleTheme } = useTheme();
   
   const containerRef = useRef(null);
   const formRef = useRef(null);
   
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  // Itt tároljuk az adatokat egy objektumban
+const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,12 +56,24 @@ export const LoginPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setIsLoading(true);
-    
+    setIsLoading(true); // Bekapcsoljuk a töltést
+
     try {
-      const response = await axios.post('http://localhost/pawpatrol/api/login.php', formData);
+      // JAVÍTVA: Itt a "formData" objektumot küldjük el, 
+      // mert abban van benne az email és a password.
+      const response = await axios.post('http://localhost/pawpatrol/api/auth/login.php', formData);
+
       if (response.data.success) {
-        navigate('/dashboard'); 
+        const userData = {
+            id: response.data.data.id, 
+            gazdi_nev: response.data.data.gazdi_nev,
+            email: response.data.data.email,
+            role: response.data.data.role || 'user',
+            avatar_url: response.data.data.avatar_url // Ha van avatar
+        };
+
+        login(response.data.token, userData);
+        navigate('/dashboard');
       }
     } catch (err: any) {
        if (err.response && err.response.data) {
@@ -85,7 +99,6 @@ export const LoginPage = () => {
 
         <div className="relative z-10 w-full h-full p-12 flex flex-col justify-between left-panel-content">
           
-          {/* LOGO - Ugyanaz mint a Navbarban, de sötét háttérre igazítva (Mancs fehér) */}
           <Link to="/" className="flex items-center gap-2 group w-fit">
              <div className="relative">
                 <div className="absolute -inset-2 bg-orange-500/20 rounded-full blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
@@ -126,7 +139,6 @@ export const LoginPage = () => {
 
         <div className="w-full max-w-md space-y-8" ref={formRef}>
           <div className="text-center login-item">
-            {/* MOBIL LOGO - Pontosan a Navbar stílus */}
             <div className="lg:hidden flex justify-center mb-6 items-center gap-2">
                 <MancsLogo className="w-10 h-10 text-orange-600" />
                 <div className="flex items-center text-3xl font-bold tracking-tight">
@@ -155,6 +167,7 @@ export const LoginPage = () => {
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all"
                   placeholder="pelda@email.com"
                   onChange={handleChange}
+                  value={formData.email}
                 />
               </div>
 
@@ -170,6 +183,7 @@ export const LoginPage = () => {
                   className="block w-full pl-10 pr-3 py-3 border border-gray-200 dark:border-gray-700 rounded-xl bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-orange-600/50 focus:border-orange-600 transition-all"
                   placeholder="••••••••"
                   onChange={handleChange}
+                  value={formData.password}
                 />
               </div>
             </div>

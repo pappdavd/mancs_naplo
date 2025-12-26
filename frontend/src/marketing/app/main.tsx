@@ -22,6 +22,9 @@ import { ShopPage } from '../../app/features/dashboard/shop/ShopPage';
 import { SchoolPage } from '../../app/features/dashboard/school/SchoolPage';
 import { MapPage } from '../../app/features/dashboard/map/MapPage';
 
+import { AuthProvider } from '../../app/context/AuthContext'; // <--- ÚJ
+import { ProtectedRoute } from '../../app/auth/ProtectedRoute'; // <--- ÚJ
+
 
 import { AdminLayout } from '../../app/layouts/AdminLayout';
 import { AdminProductsPage } from '../../app/features/admin/products/AdminProductsPage';
@@ -32,41 +35,41 @@ const AdminDashboardPlaceholder = () => <div className="text-white text-2xl">Üd
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
-      {/* Az egész alkalmazás megkapja a Téma (Dark/Light mode) kontextust */}
       <ThemeProvider>
-        <BrowserRouter>
-          <Routes>
-            {/* --- PUBLIKUS OLDALAK (Marketing & Auth) --- */}
-            <Route path="/" element={<MarketingApp />} />
-            <Route path="/login" element={<LoginPage />} />
-            <Route path="/register" element={<RegisterPage />} />
+        {/* A teljes app megkapja az AuthContextet */}
+        <AuthProvider> 
+            <BrowserRouter>
+              <Routes>
+                
+                {/* Publikus oldalak */}
+                <Route path="/" element={<MarketingApp />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
 
-            {/* --- VÉDETT (BELSŐ) DASHBOARD --- */}
-            {/* A DashboardLayout adja a keretet (Oldalsáv / Alsó menü) */}
-            <Route path="/dashboard" element={<DashboardLayout />}>
-              
-              {/* Főoldal (Tamagotchi / Feed) - ez töltődik be alapból a /dashboard címen */}
-              <Route index element={<DashboardPage />} />
-              
-              {/* Profil oldal - /dashboard/profile */}
-              <Route path="profile" element={<ProfilePage />} />
-              
-              {/* Később ide jönnek a további aloldalak (Térkép, Shop, Suli) */}
-              {/* <Route path="map" element={<MapPage />} /> */}
-<Route path="shop" element={<ShopPage />} />     
-<Route path="school" element={<SchoolPage />} />         
-<Route path="map" element={<MapPage />} />
-            </Route>
+                {/* --- VÉDETT ÚTVONALAK --- */}
+                <Route element={<ProtectedRoute />}>
+                    
+                    {/* User Dashboard */}
+                    <Route path="/dashboard" element={<DashboardLayout />}>
+                      <Route index element={<DashboardPage />} />
+                      <Route path="profile" element={<ProfilePage />} />
+                      <Route path="shop" element={<ShopPage />} />
+                      <Route path="school" element={<SchoolPage />} />
+                      <Route path="map" element={<MapPage />} />
+                    </Route>
 
+                    {/* Admin Dashboard */}
+                    <Route path="/admin" element={<AdminLayout />}>
+                      {/* Ide akár tehetnénk egy extra ellenőrzést, hogy user.role === 'admin' */}
+                      <Route index element={<div>Admin Home</div>} /> 
+                      <Route path="products" element={<AdminProductsPage />} />
+                    </Route>
 
+                </Route>
 
-<Route path="/admin" element={<AdminLayout />}>
-               <Route index element={<AdminDashboardPlaceholder />} />
-               <Route path="products" element={<AdminProductsPage />} />
-               {/* <Route path="lessons" element={<AdminLessonsPage />} /> */}
-            </Route>
-          </Routes>
-        </BrowserRouter>
+              </Routes>
+            </BrowserRouter>
+        </AuthProvider>
       </ThemeProvider>
     </HelmetProvider>
   </StrictMode>
