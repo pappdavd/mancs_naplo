@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Dog, Calendar, Heart } from 'lucide-react';
 import axios from 'axios';
+import { X, Dog } from 'lucide-react';
 import Button from '../../../../marketing/shared/components/Button';
 
 interface AddDogModalProps {
@@ -11,7 +11,11 @@ interface AddDogModalProps {
 }
 
 export const AddDogModal = ({ userId, isOpen, onClose, onSuccess }: AddDogModalProps) => {
-  const [formData, setFormData] = useState({ name: '', breed: '', age: '' });
+  const [formData, setFormData] = useState({
+    name: '',
+    breed: '',
+    age: ''
+  });
   const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
@@ -23,86 +27,99 @@ export const AddDogModal = ({ userId, isOpen, onClose, onSuccess }: AddDogModalP
     try {
       const response = await axios.post('http://localhost/pawpatrol/api/user/add_dog.php', {
         user_id: userId,
-        ...formData
+        name: formData.name,
+        breed: formData.breed,
+        age: formData.age
       });
 
       if (response.data.success) {
-        onSuccess(); // Lista frissítése
-        onClose();   // Ablak bezárása
-        setFormData({ name: '', breed: '', age: '' }); // Form törlése
+        onSuccess();
+        onClose();
+        setFormData({ name: '', breed: '', age: '' });
+      } else {
+        alert('Hiba: ' + response.data.message);
       }
     } catch (error) {
-      console.error("Hiba a mentéskor:", error);
-      alert("Nem sikerült menteni a kutyust.");
+      console.error("Hiba a hozzáadáskor:", error);
+      alert('Nem sikerült hozzáadni a kutyust.');
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      {/* Sötét háttér */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose}></div>
-
-      {/* Modal Doboz */}
-      <div className="relative bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl transform transition-all animate-in fade-in zoom-in duration-300">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+      {/* JAVÍTÁS: 
+          - Hozzáadtuk a 'text-gray-900' osztályt, hogy a szöveg mindenképp sötét legyen.
+          - Ez felülírja a Dark Mode globális fehér szövegszínét ezen a fehér kártyán belül.
+      */}
+      <div className="bg-white text-gray-900 rounded-3xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
         
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
-          <X size={24} />
-        </button>
-
-        <div className="text-center mb-6">
-           <div className="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-3 text-orange-600">
-              <Dog size={32} />
-           </div>
-           <h2 className="text-2xl font-bold text-gray-900">Új Kutyus 🐶</h2>
-           <p className="text-gray-500 text-sm">Add meg a kedvenced adatait.</p>
+        {/* Fejléc */}
+        <div className="bg-orange-50 p-6 flex justify-between items-center border-b border-orange-100">
+            <h3 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                <Dog className="text-orange-600" /> Új kutyus hozzáadása
+            </h3>
+            <button onClick={onClose} className="p-2 hover:bg-white rounded-full transition-colors text-gray-600 hover:text-gray-900">
+                <X size={20} />
+            </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Űrlap */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
             <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Kutya neve *</label>
-                <div className="relative">
-                    <Heart className="absolute left-3 top-3 text-gray-400" size={18} />
-                    <input 
-                        type="text" 
-                        required
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none"
-                        placeholder="Pl. Bodri"
-                        onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
-                </div>
+                {/* Címkék sötétítése */}
+                <label className="block text-sm font-bold text-gray-800 mb-1.5">Kutyus neve *</label>
+                <input 
+                    type="text" 
+                    required
+                    // JAVÍTÁS: Sötétebb keret (border-gray-300) és explicit sötét szöveg (text-gray-900)
+                    className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Pl. Bodri"
+                />
             </div>
 
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Fajtája</label>
-                <div className="relative">
-                    <Dog className="absolute left-3 top-3 text-gray-400" size={18} />
+            <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-1.5">Fajta</label>
                     <input 
                         type="text" 
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none"
-                        placeholder="Pl. Vizsla"
+                        className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                        value={formData.breed}
                         onChange={(e) => setFormData({...formData, breed: e.target.value})}
+                        placeholder="Pl. Vizsla"
                     />
                 </div>
-            </div>
-
-            <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Életkora (év)</label>
-                <div className="relative">
-                    <Calendar className="absolute left-3 top-3 text-gray-400" size={18} />
+                <div>
+                    <label className="block text-sm font-bold text-gray-800 mb-1.5">Kor (év)</label>
                     <input 
                         type="number" 
-                        className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none"
-                        placeholder="Pl. 3"
+                        className="w-full px-4 py-2 bg-white border border-gray-300 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                        value={formData.age}
                         onChange={(e) => setFormData({...formData, age: e.target.value})}
+                        placeholder="Pl. 3"
                     />
                 </div>
             </div>
 
-            <Button variant="primary" className="w-full justify-center mt-4" disabled={isLoading}>
-                {isLoading ? 'Mentés...' : 'Hozzáadás'}
-            </Button>
+            <div className="pt-4 flex justify-end gap-3 border-t border-gray-100 mt-2">
+                <button 
+                    type="button"
+                    onClick={onClose}
+                    className="px-5 py-2.5 text-gray-700 font-semibold hover:bg-gray-100 rounded-xl transition-colors"
+                >
+                    Mégse
+                </button>
+                <Button 
+                    variant="primary" 
+                    disabled={isLoading}
+                    className="flex items-center gap-2 px-6"
+                >
+                    {isLoading ? 'Mentés...' : 'Hozzáadás'}
+                </Button>
+            </div>
         </form>
 
       </div>
