@@ -4,7 +4,6 @@ import { HiMenu, HiX, HiSun, HiMoon, HiMusicNote, HiVolumeOff } from 'react-icon
 
 // Context és komponensek importálása
 import { useTheme } from '../context/ThemeContext';
-// A Button importot eltávolítottuk, mert már nem használjuk
 import MancsLogo from '../shared/components/MancsLogo';
 
 // Zene importálása
@@ -126,12 +125,14 @@ const Navbar = () => {
                 </button>
             </div>
 
-            {/* DESKTOP BELÉPÉS GOMB (Mancs stílus) */}
-            <Link to="/login" className="ml-4">
-              <button className="group flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-full transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 active:scale-95">
+            {/* JAVÍTOTT DESKTOP BELÉPÉS GOMB (Nincs benne <button>, maga a Link a gomb) */}
+            <Link 
+                to="/login" 
+                onClick={handleScrollToTop}
+                className="ml-4 group flex items-center gap-2 bg-orange-600 hover:bg-orange-500 text-white font-bold py-2 px-6 rounded-full transition-all shadow-lg shadow-orange-500/20 hover:shadow-orange-500/40 active:scale-95"
+            >
                 <MancsLogo className="w-5 h-5 text-orange-200 group-hover:text-white transition-all group-hover:rotate-12" />
                 <span>Belépés</span>
-              </button>
             </Link>
           </div>
 
@@ -181,12 +182,14 @@ const Navbar = () => {
                 {isPlaying ? "Zene kikapcsolása" : "Háttérzene bekapcsolása"}
             </button>
             
-            {/* MOBIL BELÉPÉS GOMB (Mancs stílus) */}
-            <Link to="/login" onClick={() => setIsOpen(false)}>
-                <button className="group w-full flex items-center justify-center gap-3 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-orange-500/20 active:scale-95">
-                    <MancsLogo className="w-6 h-6 text-orange-200 group-hover:text-white transition-all group-hover:rotate-12" />
-                    <span>Belépés</span>
-                </button>
+            {/* JAVÍTOTT MOBIL BELÉPÉS GOMB (Nincs benne <button>) */}
+            <Link 
+                to="/login" 
+                onClick={() => { setIsOpen(false); handleScrollToTop(); }}
+                className="group w-full flex items-center justify-center gap-3 bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 px-6 rounded-full transition-all shadow-lg shadow-orange-500/20 active:scale-95"
+            >
+                <MancsLogo className="w-6 h-6 text-orange-200 group-hover:text-white transition-all group-hover:rotate-12" />
+                <span>Belépés</span>
             </Link>
           </div>
         </div>

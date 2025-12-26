@@ -1,20 +1,39 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { HelmetProvider } from 'react-helmet-async';
-import MarketingApp from './MarketingApp';
+
+// ThemeProvider importálása
 import { ThemeProvider } from '../context/ThemeContext';
-import '../styles/tailwind.css'; 
 
-const rootElement = document.getElementById('root');
+import '../styles/tailwind.css';
 
-if (rootElement) {
-  ReactDOM.createRoot(rootElement).render(
-    <React.StrictMode>
-      <HelmetProvider>
-        <ThemeProvider>
-          <MarketingApp />
-        </ThemeProvider>
-      </HelmetProvider>
-    </React.StrictMode>
-  );
-}
+import MarketingApp from './MarketingApp';
+import { LoginPage } from '../../app/auth/LoginPage';
+import { RegisterPage } from '../../app/auth/RegisterPage';
+
+const DashboardPlaceholder = () => (
+  <div className="p-10 text-center">
+    <h1 className="text-3xl font-bold text-orange-600">Üdv a MancsNaplóban! 🐶</h1>
+    <p>Ez a belső felület (Dashboard) hamarosan elkészül.</p>
+    <a href="/" className="text-blue-500 underline mt-4 block">Kijelentkezés</a>
+  </div>
+);
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <HelmetProvider>
+      {/* FONTOS: Itt öleljük át az egész appot a ThemeProvider-rel */}
+      <ThemeProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/" element={<MarketingApp />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/dashboard" element={<DashboardPlaceholder />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
+    </HelmetProvider>
+  </StrictMode>
+);
