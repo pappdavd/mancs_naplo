@@ -15,21 +15,21 @@ import { LoginPage } from '../../app/auth/LoginPage';
 import { RegisterPage } from '../../app/auth/RegisterPage';
 import { DashboardLayout } from '../../app/layouts/DashboardLayout';
 
-// Fontos: Itt már a helyes, mappába rendezett útvonalat használjuk
+// Dashboard oldalak
 import { DashboardPage } from '../../app/features/dashboard/DashboardPage'; 
 import { ProfilePage } from '../../app/features/dashboard/profile/ProfilePage';
 import { ShopPage } from '../../app/features/dashboard/shop/ShopPage';
 import { SchoolPage } from '../../app/features/dashboard/school/SchoolPage';
 import { MapPage } from '../../app/features/dashboard/map/MapPage';
 
-import { AuthProvider } from '../../app/context/AuthContext'; // <--- ÚJ
-import { ProtectedRoute } from '../../app/auth/ProtectedRoute'; // <--- ÚJ
+// Auth Context és Route Védelem
+import { AuthProvider } from '../../app/context/AuthContext';
+import { ProtectedRoute } from '../../app/auth/ProtectedRoute';
+import { AdminRoute } from '../../app/auth/AdminRoute'; // <--- ADMIN VÉDELEM IMPORT
 
-
+// Admin Layout és Oldalak
 import { AdminLayout } from '../../app/layouts/AdminLayout';
 import { AdminProductsPage } from '../../app/features/admin/products/AdminProductsPage';
-
-// Egy egyszerű placeholder a fő admin dashboardhoz (hogy ne legyen üres)
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
@@ -40,15 +40,15 @@ createRoot(document.getElementById('root')!).render(
             <BrowserRouter>
               <Routes>
                 
-                {/* Publikus oldalak */}
+                {/* --- PUBLIKUS OLDALAK --- */}
                 <Route path="/" element={<MarketingApp />} />
                 <Route path="/login" element={<LoginPage />} />
                 <Route path="/register" element={<RegisterPage />} />
 
-                {/* --- VÉDETT ÚTVONALAK --- */}
+                {/* --- VÉDETT ÚTVONALAK (Bejelentkezés szükséges) --- */}
                 <Route element={<ProtectedRoute />}>
                     
-                    {/* User Dashboard */}
+                    {/* USER DASHBOARD */}
                     <Route path="/dashboard" element={<DashboardLayout />}>
                       <Route index element={<DashboardPage />} />
                       <Route path="profile" element={<ProfilePage />} />
@@ -57,11 +57,13 @@ createRoot(document.getElementById('root')!).render(
                       <Route path="map" element={<MapPage />} />
                     </Route>
 
-                    {/* Admin Dashboard */}
-                    <Route path="/admin" element={<AdminLayout />}>
-                      {/* Ide akár tehetnénk egy extra ellenőrzést, hogy user.role === 'admin' */}
-                      <Route index element={<div>Admin Home</div>} /> 
-                      <Route path="products" element={<AdminProductsPage />} />
+                    {/* ADMIN DASHBOARD (Dupla védelem: Login + Admin jog) */}
+                    <Route element={<AdminRoute />}> {/* <--- ITT A VÉDELEM */}
+                        <Route path="/admin" element={<AdminLayout />}>
+                          {/* Placeholder a főoldalra */}
+                          <Route index element={<div className="p-10 text-gray-500 font-medium">Üdv az Admin felületen! Válassz a menüből. ⬅️</div>} /> 
+                          <Route path="products" element={<AdminProductsPage />} />
+                        </Route>
                     </Route>
 
                 </Route>
