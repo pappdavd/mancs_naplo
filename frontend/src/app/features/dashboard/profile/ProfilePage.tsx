@@ -1,16 +1,19 @@
-import { useState, useEffect } from 'react'; // React import törölve
+import { useState, useEffect } from 'react';
 import { User, Mail, Shield, Camera, Plus, Save } from 'lucide-react';
 import axios from 'axios';
-
-// JAVÍTVA: 4 szintet kell visszalépni a marketing mappához
 import Button from '../../../../marketing/shared/components/Button';
+import { AddDogModal } from './AddDogModal'; // <--- ÚJ IMPORT
 
+// TODO: Ezt majd a valódi login tokenből szedjük
 const TEMP_USER_ID = 1; 
 
 export const ProfilePage = () => {
   const [profile, setProfile] = useState<any>(null);
   const [dogs, setDogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  
+  // ÚJ ÁLLAPOT A MODALHOZ
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchProfile();
@@ -35,7 +38,7 @@ export const ProfilePage = () => {
   return (
     <div className="max-w-4xl mx-auto space-y-8">
       
-      {/* FEJLÉC */}
+      {/* 1. FEJLÉC */}
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
         <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-400 to-orange-600 opacity-90"></div>
         
@@ -71,11 +74,16 @@ export const ProfilePage = () => {
         </div>
       </div>
 
-      {/* KUTYÁK */}
+      {/* 2. KUTYÁK SZEKCIÓ */}
       <div className="space-y-4">
         <div className="flex justify-between items-center px-2">
             <h2 className="text-xl font-bold text-gray-800">Kutyusaim 🐶</h2>
-            <button className="text-sm text-orange-600 font-medium hover:underline flex items-center gap-1">
+            
+            {/* JAVÍTVA: Gombnyomásra megnyílik a modal */}
+            <button 
+                onClick={() => setIsModalOpen(true)}
+                className="text-sm text-orange-600 font-medium hover:underline flex items-center gap-1"
+            >
                 <Plus size={16} /> Új hozzáadása
             </button>
         </div>
@@ -83,18 +91,28 @@ export const ProfilePage = () => {
         {dogs.length === 0 ? (
             <div className="bg-orange-50 border border-orange-100 rounded-2xl p-8 text-center">
                 <p className="text-gray-600 mb-4">Még nem adtál hozzá kutyust a profilodhoz.</p>
-                <Button variant="primary">Kutya hozzáadása most</Button>
+                <Button variant="primary" onClick={() => setIsModalOpen(true)}>
+                    Kutya hozzáadása most
+                </Button>
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {dogs.map((dog, index) => (
-                    <div key={index} className="bg-white p-4 rounded-2xl border border-gray-200 flex items-center gap-4">
-                        <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden">
-                            <img src="https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=100&h=100" alt="Dog" className="w-full h-full object-cover" />
+                    <div key={index} className="bg-white p-4 rounded-2xl border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
+                        <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
+                            {/* Unsplash "dog" kulcsszóval generálunk random képet, ha nincs saját */}
+                            <img 
+                                src={`https://source.unsplash.com/featured/?${dog.breed || 'dog'}`} 
+                                onError={(e) => (e.currentTarget.src = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=100&h=100")}
+                                alt="Dog" 
+                                className="w-full h-full object-cover" 
+                            />
                         </div>
                         <div>
                             <h3 className="font-bold text-lg">{dog.name}</h3>
-                            <p className="text-sm text-gray-500">{dog.breed || 'Ismeretlen fajta'}</p>
+                            <p className="text-sm text-gray-500">
+                                {dog.breed || 'Ismeretlen fajta'} {dog.age ? `• ${dog.age} éves` : ''}
+                            </p>
                         </div>
                     </div>
                 ))}
@@ -102,7 +120,7 @@ export const ProfilePage = () => {
         )}
       </div>
 
-      {/* SZERKESZTÉS */}
+      {/* 3. SZERKESZTÉS FORM */}
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100">
          <h2 className="text-xl font-bold text-gray-800 mb-6">Adataim szerkesztése</h2>
          <form className="space-y-4">
@@ -124,6 +142,14 @@ export const ProfilePage = () => {
             </div>
          </form>
       </div>
+
+      {/* --- MODAL --- */}
+      <AddDogModal 
+        userId={TEMP_USER_ID}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={() => fetchProfile()} // Ha kész, újratöltjük a listát
+      />
 
     </div>
   );
