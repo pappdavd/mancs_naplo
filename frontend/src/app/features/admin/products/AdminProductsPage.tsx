@@ -1,18 +1,20 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { Plus, Save, Package, DollarSign, Image as ImageIcon, UploadCloud } from 'lucide-react';
+// JAVÍTVA: Kivettük a Plus, Save, ImageIcon importokat
+import { Package, DollarSign, UploadCloud } from 'lucide-react'; 
 import Button from '../../../../marketing/shared/components/Button';
 
 export const AdminProductsPage = () => {
-  // Az állapotok külön kezelése tisztább itt
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [price, setPrice] = useState('');
   const [stock, setStock] = useState('10');
-  const [category, setCategory] = useState('merch');
+  
+  // JAVÍTVA: Kivettük a setCategory-t, mert nem használtuk
+  const [category] = useState('merch'); 
+  
   const [isFeatured, setIsFeatured] = useState(false);
   
-  // Fájlkezeléshez állapotok
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   

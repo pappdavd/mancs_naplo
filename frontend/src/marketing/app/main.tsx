@@ -30,7 +30,6 @@ import { AdminLayout } from '../../app/layouts/AdminLayout';
 import { AdminProductsPage } from '../../app/features/admin/products/AdminProductsPage';
 
 // Egy egyszerű placeholder a fő admin dashboardhoz (hogy ne legyen üres)
-const AdminDashboardPlaceholder = () => <div className="text-white text-2xl">Üdv az Admin felületen! 👋 Válassz a menüből.</div>;
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

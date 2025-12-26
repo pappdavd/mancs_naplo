@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { Play, Square, Navigation } from 'lucide-react'; // MapPin kivéve, mert nem használjuk a fake címkéhez
+import { Play, Square, Navigation } from 'lucide-react';
 import Button from '../../../../marketing/shared/components/Button';
 import { logActivity } from '../../../services/logger';
 
@@ -36,7 +36,6 @@ export const MapPage = () => {
   const timerId = useRef<any>(null);
 
   useEffect(() => {
-    // 1. Azonnal lekérjük a TE valós pozíciódat
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setPosition([pos.coords.latitude, pos.coords.longitude]);
@@ -91,7 +90,6 @@ export const MapPage = () => {
              if (prevPath.length > 0) {
                  const lastPoint = prevPath[prevPath.length - 1];
                  const dist = calculateDistance(lastPoint[0], lastPoint[1], newLat, newLng);
-                 // Csak akkor rajzolunk új pontot, ha legalább 2 métert mozdultál (zajszűrés)
                  if (dist > 2) { 
                      setDistance(prevDist => prevDist + dist);
                      return [...prevPath, newPos];
@@ -145,7 +143,6 @@ export const MapPage = () => {
             
             <Polyline positions={path} color="orange" weight={5} opacity={0.7} />
 
-            {/* Ez a komponens gondoskodik róla, hogy a térkép mindig rád fókuszáljon */}
             <RecenterAutomatically lat={position[0]} lng={position[1]} />
           </MapContainer>
       ) : (
@@ -157,9 +154,9 @@ export const MapPage = () => {
           </div>
       )}
 
-      {/* VEZÉRLŐPULT (Alsó sáv) */}
-      {/* JAVÍTÁS: A z-[1000] itt marad, de a "Városliget" dobozt töröltem */}
-      <div className="absolute bottom-6 left-6 right-6 z-[1000]">
+      {/* VEZÉRLŐPULT */}
+      {/* JAVÍTVA: z-[1000] helyett z-1000 */}
+      <div className="absolute bottom-6 left-6 right-6 z-1000">
          <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg border border-gray-200 flex items-center justify-between">
             
             <div className="flex gap-6">

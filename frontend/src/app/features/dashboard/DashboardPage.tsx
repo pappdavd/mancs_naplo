@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
-import { Footprints, Utensils, Zap, Heart, Bell, CheckCircle, ShoppingBag, Trophy } from 'lucide-react';
+import { Footprints, Utensils, Zap, Heart, Bell, CheckCircle, ShoppingBag, Trophy, LogOut } from 'lucide-react';
 import axios from 'axios';
-import { useAuth } from '../../context/AuthContext'; // <--- Context
+import { useAuth } from '../../context/AuthContext';
 import { logActivity } from '../../services/logger';
 import Button from '../../../marketing/shared/components/Button';
 import { Link } from 'react-router-dom';
 
 export const DashboardPage = () => {
-  const { user } = useAuth(); // <--- Valódi user
+  const { user, logout } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isAnimating, setIsAnimating] = useState(false);
   
-  // Backendből jövő adatok (alapértékek)
   const [dogData, setDogData] = useState({
     name: 'Betöltés...',
     breed: 'Keverék',
@@ -22,7 +21,6 @@ export const DashboardPage = () => {
     happiness: 100
   });
 
-  // 1. Adatok betöltése backendről
   useEffect(() => {
     if (user && user.id) {
         fetchStatus();
@@ -31,13 +29,11 @@ export const DashboardPage = () => {
 
   const fetchStatus = async () => {
     try {
-      // Itt hívjuk meg a backendet a user ID-val
       const response = await axios.get(`http://localhost/pawpatrol/api/tamagotchi/get_status.php?user_id=${user?.id}`);
       if (response.data.success) {
-        // A backend válaszát illesztjük a state-be
         const data = response.data.data;
         setDogData({
-            name: user?.gazdi_nev ? `${user.gazdi_nev} Kutyusa` : 'Kutyus', // Ha van kutyanev, azt kéne, de most usernevbol generalunk
+            name: user?.gazdi_nev ? `${user.gazdi_nev} Kutyusa` : 'Kutyus', 
             breed: 'Virtuális',
             level: data.level,
             xp: data.xp,
@@ -53,12 +49,10 @@ export const DashboardPage = () => {
     }
   };
 
-  // 2. Interakció kezelése (Etetés / Séta / Játék)
   const handleAction = async (action: 'walk' | 'feed' | 'play') => {
     if (!user) return;
     setIsAnimating(true);
     
-    // Lokális frissítés (hogy gyors legyen a UI)
     let newStatus = { ...dogData };
     let logMessage = '';
 
@@ -68,12 +62,11 @@ export const DashboardPage = () => {
         newStatus.xp += 20;
         logMessage = 'Séta indítva (+20 XP, +15 Boldogság)';
     } else if (action === 'feed') {
-        newStatus.hunger = Math.min(100, newStatus.hunger + 20); // Backend "Hunger" mezője a "Jóllakottságot" jelenti itt
+        newStatus.hunger = Math.min(100, newStatus.hunger + 20); 
         newStatus.xp += 5;
         logMessage = 'Kutya megetetve (+5 XP, +20 Jóllakottság)';
     }
 
-    // Szintlépés ellenőrzés
     if (newStatus.xp >= 100) {
         newStatus.level += 1;
         newStatus.xp -= 100;
@@ -83,7 +76,6 @@ export const DashboardPage = () => {
     setDogData(newStatus);
     setTimeout(() => setIsAnimating(false), 1000);
 
-    // Mentés Backendbe
     try {
        await axios.post('http://localhost/pawpatrol/api/tamagotchi/update_status.php', {
           user_id: user.id,
@@ -94,7 +86,6 @@ export const DashboardPage = () => {
           level: newStatus.level
        });
        
-       // Logolás
        await logActivity(user.id, action, logMessage);
 
     } catch (error) {
@@ -107,19 +98,28 @@ export const DashboardPage = () => {
   return (
     <div className="space-y-6 pb-20 md:pb-0">
       
-      {/* FEJLÉC */}
+      {/* HEADER */}
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Jó reggelt, {user?.gazdi_nev}! ☀️</h1>
           <p className="text-gray-500">Itt a napi összefoglalód.</p>
         </div>
-        <button className="p-2 bg-white rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors">
-           <Bell size={20} className="text-gray-600" />
-           <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
-        </button>
+        <div className="flex items-center gap-3">
+            <button 
+                onClick={logout}
+                className="p-2 bg-red-50 text-red-500 rounded-full hover:bg-red-100 transition-colors"
+                title="Kijelentkezés"
+            >
+                <LogOut size={20} />
+            </button>
+            <button className="p-2 bg-white rounded-full shadow-sm border border-gray-100 relative hover:bg-gray-50 transition-colors">
+                <Bell size={20} className="text-gray-600" />
+                <span className="absolute top-0 right-0 w-3 h-3 bg-red-500 rounded-full border-2 border-white animate-pulse"></span>
+            </button>
+        </div>
       </div>
 
-      {/* TAMAGOTCHI KÁRTYA */}
+      {/* TAMAGOTCHI CARD */}
       <div className="bg-white rounded-3xl p-6 shadow-xl shadow-orange-500/10 border border-orange-100 relative overflow-hidden transition-all hover:shadow-orange-500/20">
         <div className="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full blur-3xl -mr-10 -mt-10"></div>
         
@@ -171,7 +171,7 @@ export const DashboardPage = () => {
         </div>
       </div>
 
-      {/* WIDGETEK */}
+      {/* WIDGETS */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
          <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <h3 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
@@ -187,7 +187,8 @@ export const DashboardPage = () => {
 
          {/* Shop Promo Widget */}
          <Link to="/dashboard/shop">
-             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-sm text-white relative overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02] h-full">
+             {/* JAVÍTVA ITT: bg-linear-to-br */}
+             <div className="bg-linear-to-br from-indigo-500 to-purple-600 p-6 rounded-2xl shadow-sm text-white relative overflow-hidden group cursor-pointer transition-transform hover:scale-[1.02] h-full">
                 <div className="relative z-10">
                    <h3 className="font-bold text-lg mb-1">Hétvégi Szuper Ajánlat!</h3>
                    <p className="text-indigo-100 text-sm mb-4">A vizslák imádják ezt az új labdát.</p>
@@ -203,7 +204,6 @@ export const DashboardPage = () => {
   );
 };
 
-// Segédkomponensek (StatBar, TaskItem) - ezek maradhatnak változatlanok
 const StatBar = ({ label, value, color, icon: Icon }: any) => (
    <div className="flex items-center gap-3" title={label}>
       <Icon size={18} className="text-gray-400" />

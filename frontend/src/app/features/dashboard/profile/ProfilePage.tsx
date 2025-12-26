@@ -2,26 +2,26 @@ import { useState, useEffect } from 'react';
 import { User, Mail, Shield, Camera, Plus, Save } from 'lucide-react';
 import axios from 'axios';
 import Button from '../../../../marketing/shared/components/Button';
-import { AddDogModal } from './AddDogModal'; // <--- ÚJ IMPORT
-
-// TODO: Ezt majd a valódi login tokenből szedjük
-const TEMP_USER_ID = 1; 
+import { AddDogModal } from './AddDogModal';
+import { useAuth } from '../../../context/AuthContext';
 
 export const ProfilePage = () => {
+  const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [dogs, setDogs] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // ÚJ ÁLLAPOT A MODALHOZ
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchProfile();
-  }, []);
+    if (user && user.id) {
+        fetchProfile();
+    }
+  }, [user]);
 
   const fetchProfile = async () => {
     try {
-      const response = await axios.get(`http://localhost/pawpatrol/api/user/get_profile.php?id=${TEMP_USER_ID}`);
+      const response = await axios.get(`http://localhost/pawpatrol/api/user/get_profile.php?id=${user?.id}`);
       if (response.data.success) {
         setProfile(response.data.user);
         setDogs(response.data.dogs);
@@ -33,14 +33,15 @@ export const ProfilePage = () => {
     }
   };
 
-  if (isLoading) return <div className="p-10 text-center">Betöltés...</div>;
+  if (isLoading) return <div className="p-10 text-center text-gray-500">Profil betöltése...</div>;
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8">
+    <div className="max-w-4xl mx-auto space-y-8 pb-20 md:pb-0">
       
       {/* 1. FEJLÉC */}
       <div className="bg-white rounded-3xl p-8 shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-8 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-orange-400 to-orange-600 opacity-90"></div>
+        {/* JAVÍTVA: bg-linear-to-r */}
+        <div className="absolute top-0 left-0 w-full h-24 bg-linear-to-r from-orange-400 to-orange-600 opacity-90"></div>
         
         <div className="relative mt-12 md:mt-0 z-10">
           <div className="w-32 h-32 rounded-full border-4 border-white shadow-lg bg-gray-200 flex items-center justify-center overflow-hidden">
@@ -79,7 +80,6 @@ export const ProfilePage = () => {
         <div className="flex justify-between items-center px-2">
             <h2 className="text-xl font-bold text-gray-800">Kutyusaim 🐶</h2>
             
-            {/* JAVÍTVA: Gombnyomásra megnyílik a modal */}
             <button 
                 onClick={() => setIsModalOpen(true)}
                 className="text-sm text-orange-600 font-medium hover:underline flex items-center gap-1"
@@ -99,8 +99,8 @@ export const ProfilePage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {dogs.map((dog, index) => (
                     <div key={index} className="bg-white p-4 rounded-2xl border border-gray-200 flex items-center gap-4 hover:shadow-md transition-shadow">
-                        <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
-                            {/* Unsplash "dog" kulcsszóval generálunk random képet, ha nincs saját */}
+                        {/* JAVÍTVA: shrink-0 */}
+                        <div className="w-16 h-16 bg-gray-100 rounded-xl overflow-hidden shrink-0">
                             <img 
                                 src={`https://source.unsplash.com/featured/?${dog.breed || 'dog'}`} 
                                 onError={(e) => (e.currentTarget.src = "https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=100&h=100")}
@@ -143,13 +143,14 @@ export const ProfilePage = () => {
          </form>
       </div>
 
-      {/* --- MODAL --- */}
-      <AddDogModal 
-        userId={TEMP_USER_ID}
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={() => fetchProfile()} // Ha kész, újratöltjük a listát
-      />
+      {user && (
+          <AddDogModal 
+            userId={user.id} 
+            isOpen={isModalOpen}
+            onClose={() => setIsModalOpen(false)}
+            onSuccess={() => fetchProfile()} 
+          />
+      )}
 
     </div>
   );
