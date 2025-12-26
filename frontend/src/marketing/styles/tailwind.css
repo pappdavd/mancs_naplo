@@ -1,0 +1,55 @@
+@import "tailwindcss";
+
+/* --- SÖTÉT MÓD AKTIVÁLÁSA --- */
+@variant dark (&:where(.dark, .dark *));
+
+html {
+  scroll-behavior: smooth;
+}
+
+@layer base {
+  body {
+    /* Alapértelmezett szövegszín: Sötét szürke (nappal) / Világos (éjjel) */
+    @apply text-gray-900 dark:text-gray-100 antialiased;
+  }
+}
+
+/* --- ANIMÁCIÓK --- */
+
+/* 1. Szöveg csillogás (Hero cím) */
+@keyframes shimmer {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+.animate-shimmer {
+  animation: shimmer 8s linear infinite;
+}
+
+/* 2. Gomb fénycsík (CTA) */
+@keyframes shine {
+  0% { left: -100%; }
+  20% { left: 100%; }
+  100% { left: 100%; }
+}
+.animate-shine {
+  animation: shine 3s infinite;
+}
+
+/* 3. Gradiens mozgás (ha használnánk) */
+@keyframes gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+.animate-gradient {
+  animation: gradient 6s ease infinite;
+}
+
+/* 4. Fade In Up (általános megjelenés) */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+  animation: fadeInUp 0.8s ease-out forwards;
+}
