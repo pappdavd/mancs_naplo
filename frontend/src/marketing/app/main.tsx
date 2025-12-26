@@ -21,6 +21,14 @@ import { ProfilePage } from '../../app/features/dashboard/profile/ProfilePage';
 import { ShopPage } from '../../app/features/dashboard/shop/ShopPage';
 import { SchoolPage } from '../../app/features/dashboard/school/SchoolPage';
 import { MapPage } from '../../app/features/dashboard/map/MapPage';
+
+
+import { AdminLayout } from '../../app/layouts/AdminLayout';
+import { AdminProductsPage } from '../../app/features/admin/products/AdminProductsPage';
+
+// Egy egyszerű placeholder a fő admin dashboardhoz (hogy ne legyen üres)
+const AdminDashboardPlaceholder = () => <div className="text-white text-2xl">Üdv az Admin felületen! 👋 Válassz a menüből.</div>;
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <HelmetProvider>
@@ -50,6 +58,13 @@ createRoot(document.getElementById('root')!).render(
 <Route path="map" element={<MapPage />} />
             </Route>
 
+
+
+<Route path="/admin" element={<AdminLayout />}>
+               <Route index element={<AdminDashboardPlaceholder />} />
+               <Route path="products" element={<AdminProductsPage />} />
+               {/* <Route path="lessons" element={<AdminLessonsPage />} /> */}
+            </Route>
           </Routes>
         </BrowserRouter>
       </ThemeProvider>
